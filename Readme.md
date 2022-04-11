@@ -139,6 +139,10 @@ kubectl get services -n oracle
 ```
 
 ```
+kubectl get service oracle18xe -n oracle
+```
+
+```
 minikube service oracle18xe -n oracle --url
 ```
 
