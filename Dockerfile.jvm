@@ -2,7 +2,6 @@ FROM container-registry.oracle.com/java/openjdk:17-oraclelinux8
 
 ENV ORACLE_HOST=192.168.49.2
 
-#EXPOSE 8080
 COPY  target/spring-jdbc-oracle-0.0.1-SNAPSHOT-exec.jar app.jar
 CMD ["java","-jar","app.jar"]
 
