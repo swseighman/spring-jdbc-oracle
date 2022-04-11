@@ -143,7 +143,11 @@ minikube service oracle18xe -n oracle --url
 ```
 
 ```
-sqlplus system/password@127.0.0.1:45485/XEPDB1
+kubectl port-forward -n oracle oracle18xe-578fb89fc5-rmrcr 1521:1521
+```
+
+```
+sqlplus system/password@localhost:45485/XEPDB1
 ```
 
 #### Install Knative Serving
