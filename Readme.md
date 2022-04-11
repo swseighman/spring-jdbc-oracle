@@ -147,7 +147,7 @@ kubectl port-forward -n oracle oracle18xe-578fb89fc5-rmrcr 1521:1521
 ```
 
 ```
-sqlplus system/password@localhost:45485/XEPDB1
+sqlplus system/password@localhost:1521/XEPDB1
 ```
 
 #### Install Knative Serving
