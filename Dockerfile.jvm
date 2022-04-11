@@ -1,9 +1,11 @@
 FROM container-registry.oracle.com/java/openjdk:17-oraclelinux8
 
-EXPOSE 8080
+ENV ORACLE_HOST=192.168.49.2
+
+#EXPOSE 8080
 COPY  target/spring-jdbc-oracle-0.0.1-SNAPSHOT-exec.jar app.jar
 CMD ["java","-jar","app.jar"]
 
 # Build and run:
-# docker build -f ./Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm
+# docker build -f ./Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
 # docker run --rm -p 8080:8080 localhost/spring-jdbc-oracle:jvm

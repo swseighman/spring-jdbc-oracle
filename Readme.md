@@ -110,6 +110,15 @@ docker images | grep oracle
 ```
 
 #### Deploy Oracle Database XE
+
+Build the Oracle Database container:
+```
+git clone https://github.com/oracle/docker-images.git
+cd docker-images/OracleDatabase/SingleInstance/dockerfiles
+eval $(minikube docker-env)
+./buildContainerImage.sh -v 18.4.0 -x
+```
+
 ```
 kubectl create namespace oracle
 ```
@@ -123,7 +132,7 @@ kubectl create configmap oradb --from-env-file=oracle.properties -n oracle
 ```
 
 ```
-kubectl apply -f oradb18xe.yaml -n oracle
+kubectl apply -f oradb18xe.yml -n oracle
 ```
 
 ```
@@ -135,15 +144,20 @@ kubectl get pods -n oracle
 ```
 
 ```
-kubectl get services -n oracle
+kubectl port-forward -n oracle oracle18xe-7676b54784-5xj26 1521:1521
 ```
 
+
 ```
+<<<<<<< HEAD
 kubectl get service oracle18xe -n oracle
 ```
 
 ```
 minikube service oracle18xe -n oracle --url
+=======
+kubectl get services -n oracle
+>>>>>>> 9b56bff... Fixed properties file
 ```
 
 ```
