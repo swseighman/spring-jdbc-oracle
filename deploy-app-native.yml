@@ -4,7 +4,7 @@ metadata:
   name: spring-oradb-native
 spec:
   containers:
-    - image: localhost/spring-jdbc-oracle:native
+    - image: docker.io/seighman/spring-jdbc-oracle:native
       name: spring-oradb-native
       imagePullPolicy: Never 
       resources: {}

@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: spring-oradb-jvm
+spec:
+  template:
+    spec:
+      containers:
+      - name: spring-oradb-jvm
+        image: docker.io/seighman/spring-jdbc-oracle:jvm
+      restartPolicy: Never
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 30

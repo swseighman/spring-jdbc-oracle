@@ -78,6 +78,12 @@ minikube start
 minikube tunnel
 ```
 
+If the `minikube tunnel` shuts down in an abrupt manner, it may leave orphaned network routes on your system. If this happens, the `~/.minikube/tunnels.json` file will contain an entry for that tunnel. To remove orphaned routes, run:
+```
+minikube tunnel --cleanup
+```
+
+
 
 ```
 minikube status
@@ -144,29 +150,25 @@ kubectl get pods -n oracle
 ```
 
 ```
-kubectl port-forward -n oracle oracle18xe-7676b54784-5xj26 1521:1521
-```
-
-
-```
-<<<<<<< HEAD
 kubectl get service oracle18xe -n oracle
 ```
 
 ```
 minikube service oracle18xe -n oracle --url
-=======
-kubectl get services -n oracle
->>>>>>> 9b56bff... Fixed properties file
 ```
 
 ```
-kubectl port-forward -n oracle oracle18xe-578fb89fc5-rmrcr 1521:1521
+kubectl get services -n oracle
+```
+
+```
+kubectl port-forward -n oracle oracle18xe-7676b54784-5xj26 1521:1521
 ```
 
 ```
 sqlplus system/password@localhost:1521/XEPDB1
 ```
+
 
 #### Install Knative Serving
 
@@ -315,6 +317,10 @@ hello-r4vz7-deployment-c5d4b88f7-rr8cd   0/2     Pending
 hello-r4vz7-deployment-c5d4b88f7-rr8cd   0/2     ContainerCreating
 hello-r4vz7-deployment-c5d4b88f7-rr8cd   1/2     Running
 hello-r4vz7-deployment-c5d4b88f7-rr8cd   2/2     Running
+```
+
+```
+kn service delete hello
 ```
 
 >FYI, there is also a `kn` plugin (still in Beta) which will perform an automated install of the Knative environment.  See more info [here](https://github.com/knative-sandbox/kn-plugin-quickstart).
