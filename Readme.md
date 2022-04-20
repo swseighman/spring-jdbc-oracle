@@ -1,44 +1,44 @@
-Clone repo.
+# Deploy a Knative Service to Access an Oracle Database
 
-#### Starting the Oracle Database
+The following lab is an example of building a SpringBoot application that is deployed as a Knative service running on `minikube`.  The service will query an Oracle Database (also running on `minikube`) and return some values.
 
-For simplicity, we'll use a container to deploy the Oracle Database. In this exaample, we'll use Oracle Database XE 18c (Express Edition).
+There are two versions of the service, one is a standard JAR-based application while the other will utilize the GraalVM AOT (Ahead of Time) compiler feature to create a native image executable of the same service.  
 
+The goal is to compare startup time for each service.
+
+You'll need to have GraalVM (22.0.0.2 preferred) and the native image module installed.
+
+**JDK 17** is highly recommended.
+
+
+### Getting Started
+
+First, clone this repository:
 ```
-docker run -d -p 1521:1521 -p 5500:5500 -e ORACLE_PASSWORD=password -v oracle-volume:/opt/oracle/oradata gvenzl/oracle-xe
+git clone https://github.com/swseighman/spring-jdbc-oracle.git
+cd spring-jdbc-oracle
 ```
 
-Install Required Packages
+### Oracle Database Access Prerequisites
+Install the required packages for installing/using SQLPLUS:
 ```
 sudo dnf install libaio
+```
+
+Download and install the Instant Client and SQLPLUS from [here](https://www.oracle.com/database/technologies/instant-client.html).
+```
 sudo rpm -ihv oracle-instantclient-basic-21.5.0.0.0-1.el8.x86_64.rpm
 sudo rpm -ihv oracle-instantclient-sqlplus-21.5.0.0.0-1.el8.x86_64.rpm
 ```
 
-**Test/Access the Database**
-```
-sqlplus system/password@localhost:1521/XE
-```
-
-#### Build the Project
+### Build the Project
 
 ```
 mvn package -Pnative
-target/spring-jdbc-oracle
-```
-
-You should see the output below as the query returns REGIONS in the table:
-```
-... <snip>
-2022-04-08 11:56:56.240  INFO 1696 --- [           main] com.example.oradbsample.App              : {REGION_ID=1, REGION_NAME=Europe}
-2022-04-08 11:56:56.240  INFO 1696 --- [           main] com.example.oradbsample.App              : {REGION_ID=2, REGION_NAME=Americas}
-2022-04-08 11:56:56.241  INFO 1696 --- [           main] com.example.oradbsample.App              : {REGION_ID=3, REGION_NAME=Asia}
-2022-04-08 11:56:56.241  INFO 1696 --- [           main] com.example.oradbsample.App              : {REGION_ID=4, REGION_NAME=Middle East and Africa}
-... <snip>
 ```
 
 
-#### Kubernetes Configuration and Setup (minikube)
+### Kubernetes Configuration and Setup (minikube)
 
 First, we'll need to install `minikube`, follow the instructions here: 
 https://minikube.sigs.k8s.io/docs/start/
@@ -48,16 +48,17 @@ https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
 Finally, install `kn`, see instructions here: https://knative.dev/docs/install/client/install-kn/#install-the-kn-cli
 
-
+You can check to determine if you're at the latest version or whether an upgrade might be in order:
 ```
 minikube update-check
 ```
 
+If you have any old configurations in place, you can delete the existing configurations and begin new:
 ```
 minikube delete
 ```
 
-
+You may want to consider setting some configuration values for the `minikube` environment:
 ```
 minikube config set memory 8192
 minikube config set cpus 4
@@ -65,40 +66,47 @@ minikube config set driver docker
 minikube config set kubernetes-version v1.23.5
 ```
 
-
+You can view the current `minikube` configuration using:
 ```
 minikube config view
 ```
 
+To start `minikube`:
 ```
 minikube start
 ```
 
-```
-minikube tunnel
-```
+>Services of type **LoadBalancer** can be exposed via the `minikube tunnel` command. It must be run in a separate terminal window to keep the LoadBalancer running. `Ctrl-C` in the terminal can be used to terminate the process at which time the network routes will be cleaned up.
+>```
+>minikube tunnel
+>```
 
-If the `minikube tunnel` shuts down in an abrupt manner, it may leave orphaned network routes on your system. If this happens, the `~/.minikube/tunnels.json` file will contain an entry for that tunnel. To remove orphaned routes, run:
-```
-minikube tunnel --cleanup
-```
+>If the `minikube tunnel` shuts down in an abrupt manner, it may leave orphaned network routes on your system. If this happens, the `~/.minikube/tunnels.json` file will contain an entry for that tunnel. To remove orphaned routes, run:
+>```
+>minikube tunnel --cleanup
+>```
 
 
-
+Check the status of your `minikube` cluster:
 ```
 minikube status
 ```
 
+The dashboard can be a convenient tool for troubleshooting any issues that may arise in your cluster.  To start the dashboard, execute:
 ```
 minikube dashboard
 ```
 
 
-#### Build Containers
+### Build Containers
+
+By using the following command, any `docker` command you run in this current terminal will run against the docker inside the `minikube` cluster:
+
 ```
 eval $(minikube docker-env)
 ```
 
+Build the containers:
 ```
 docker build -f ./Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
 ```
@@ -107,15 +115,15 @@ docker build -f ./Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
 docker build -f ./Dockerfile.native -t localhost/spring-jdbc-oracle:native .
 ```
 
+The next two commands will show you the containers inside `minikube`, inside minikube’s VM or Container:
 ```
 minikube ssh
 ```
-
 ```
 docker images | grep oracle
 ```
 
-#### Deploy Oracle Database XE
+### Deploy Oracle Database XE
 
 Build the Oracle Database container:
 ```
@@ -125,6 +133,7 @@ eval $(minikube docker-env)
 ./buildContainerImage.sh -v 18.4.0 -x
 ```
 
+Create a namespace for the Oracle Database:
 ```
 kubectl create namespace oracle
 ```
@@ -133,44 +142,59 @@ kubectl create namespace oracle
 kubectl get namespace oracle
 ```
 
+Create a ConfigMap:
 ```
 kubectl create configmap oradb --from-env-file=oracle.properties -n oracle
 ```
 
+Deploy the Oracle Database:
 ```
 kubectl apply -f oradb18xe.yml -n oracle
 ```
 
+Show the deployment:
 ```
 kubectl get deployments -n oracle
 ```
 
+Show the running pods:
 ```
 kubectl get pods -n oracle
 ```
 
+Show the running service:
 ```
 kubectl get service oracle18xe -n oracle
 ```
 
+Return a URL to connect to the Oracle Database service:
 ```
 minikube service oracle18xe -n oracle --url
 ```
 
+Show the running service:
 ```
 kubectl get services -n oracle
 ```
 
+Forward the local port to the Oracle Database:
 ```
 kubectl port-forward -n oracle oracle18xe-7676b54784-5xj26 1521:1521
 ```
 
+Connect to the Oracle Database:
 ```
 sqlplus system/password@localhost:1521/XEPDB1
 ```
 
+Run the SQL script to populate the sample database:
+```
+@load_sample.sql
+```
 
-#### Install Knative Serving
+
+
+### Install Knative Serving
 
 1. Select the version of Knative Serving to install
     ```bash
@@ -229,98 +253,96 @@ sqlplus system/password@localhost:1521/XEPDB1
     ```
 
 
-#### Deploy Knative Serving Application
+### Deploy Knative Serving Application
 
-Deploy using [kn](https://github.com/knative/client)
-```bash
-kn service create hello \
---image gcr.io/knative-samples/helloworld-go \
---port 8080 \
---env TARGET=Knative
+Deploy a **JAR-based** Knative Service using the yaml manifest:
+
 ```
-
-**Optional:** Deploy a Knative Service using the equivalent yaml manifest:
-```bash
-cat <<EOF | kubectl apply -f -
-apiVersion: serving.knative.dev/v1
-kind: Service
-metadata:
-  name: hello
-spec:
-  template:
-    spec:
-      containers:
-        - image: gcr.io/knative-samples/helloworld-go
-          ports:
-            - containerPort: 8080
-          env:
-            - name: TARGET
-              value: "Knative"
-EOF
+kubectl apply -f spring-oradb-jvm.yml
 ```
 
 Wait for Knative Service to be Ready
-```bash
-kubectl wait ksvc hello --all --timeout=-1s --for=condition=Ready
+```
+kubectl wait ksvc spring-oradb-jvm --all --timeout=-1s --for=condition=Ready
 ```
 
 Get the URL of the new Service
-```bash
-SERVICE_URL=$(kubectl get ksvc hello -o jsonpath='{.status.url}')
+```
+SERVICE_URL=$(kubectl get ksvc spring-oradb-jvm -o jsonpath='{.status.url}')
 echo $SERVICE_URL
-```
-
-Test the App
-```bash
-curl $SERVICE_URL
-```
-
-The output should be:
-```
-Hello Knative!
 ```
 
 Check the knative pods that scaled from zero
 ```
-kubectl get pod -l serving.knative.dev/service=hello
+kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm
 ```
 
 The output should be:
 ```
-NAME                                     READY   STATUS    RESTARTS   AGE
-hello-r4vz7-deployment-c5d4b88f7-ks95l   2/2     Running   0          7s
-```
-
-Try the service `url` on your browser (command works on linux and macos)
-```bash
-open $SERVICE_URL
+NAME                                               READY    STATUS    RESTARTS   AGE
+spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
 ```
 
 You can watch the pods and see how they scale down to zero after http traffic stops to the url
 ```
-kubectl get pod -l serving.knative.dev/service=hello -w
+kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm -w
 ```
 
 The output should look like this:
 ```
-NAME                                     READY   STATUS
-hello-r4vz7-deployment-c5d4b88f7-ks95l   2/2     Running
-hello-r4vz7-deployment-c5d4b88f7-ks95l   2/2     Terminating
-hello-r4vz7-deployment-c5d4b88f7-ks95l   1/2     Terminating
-hello-r4vz7-deployment-c5d4b88f7-ks95l   0/2     Terminating
-```
-
-Try to access the url again, and you will see a new pod running again.
-```
-NAME                                     READY   STATUS
-hello-r4vz7-deployment-c5d4b88f7-rr8cd   0/2     Pending
-hello-r4vz7-deployment-c5d4b88f7-rr8cd   0/2     ContainerCreating
-hello-r4vz7-deployment-c5d4b88f7-rr8cd   1/2     Running
-hello-r4vz7-deployment-c5d4b88f7-rr8cd   2/2     Running
+NAME                                               READY    STATUS
+spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
+spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
 ```
 
 ```
-kn service delete hello
+kn service delete spring-oradb-jvm
+```
+
+You can follow the same process for the native image version of the service, but use `spring-oradb-native`.
+
+Deploy a **native image-based** Knative Service using the yaml manifest:
+
+```
+kubectl apply -f spring-oradb-native.yml
+```
+
+Wait for Knative Service to be Ready
+```
+kubectl wait ksvc spring-oradb-native --all --timeout=-1s --for=condition=Ready
+```
+
+Get the URL of the new Service
+```
+SERVICE_URL=$(kubectl get ksvc spring-oradb-native -o jsonpath='{.status.url}')
+echo $SERVICE_URL
+```
+
+Check the knative pods that scaled from zero
+```
+kubectl get pod -l serving.knative.dev/service=spring-oradb-native
+```
+
+The output should be:
+```
+NAME                                                  READY    STATUS    RESTARTS   AGE
+spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
+```
+
+You can watch the pods and see how they scale down to zero after http traffic stops to the url
+```
+kubectl get pod -l serving.knative.dev/service=spring-oradb-native -w
+```
+
+The output should look like this:
+```
+NAME                                                   READY   STATUS
+spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
+spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
+```
+
+```
+kn service delete spring-oradb-native
 ```
 
 >FYI, there is also a `kn` plugin (still in Beta) which will perform an automated install of the Knative environment.  See more info [here](https://github.com/knative-sandbox/kn-plugin-quickstart).
@@ -329,6 +351,8 @@ After installing the plugin, you would execute:
 >kn quickstart minikube
 >```
 
+
+To shutdow the `minikube` cluster, execute:
 ```
 minikube stop
 ```

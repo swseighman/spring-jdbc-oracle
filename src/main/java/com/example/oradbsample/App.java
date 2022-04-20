@@ -33,7 +33,7 @@ public class App implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		
-		log.info("Querying for List of Regions");
+		log.info("Querying for List of Regions ...");
 		
 		String query = "SELECT * FROM REGIONS";
 
@@ -45,6 +45,7 @@ public class App implements CommandLineRunner {
 						.forEach(customer -> log.info(customer.toString()));
 		
 	}
+	
 	@PreDestroy
 	public void destroy() {
 		System.out.println("Triggered PreDestroy");
