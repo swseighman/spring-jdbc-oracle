@@ -315,6 +315,12 @@ To delete the service, execute:
 kn service delete spring-oradb-jvm
 ```
 
+Or
+
+```
+kubectl delete -f deployments/spring-oradb-jvm.yml
+```
+
 You can follow the same process for the native image version of the service, but use `spring-oradb-native`.
 
 Deploy a **native image-based** Knative Service using the yaml manifest:
@@ -383,6 +389,11 @@ To delete the service, execute:
 
 ```
 kn service delete spring-oradb-native
+```
+Or
+
+```
+kubectl delete -f deployments/spring-oradb-native.yml
 ```
 
 >FYI, there is also a `kn` plugin (still in Beta) which will perform an automated install of the Knative environment.  See more info [here](https://github.com/knative-sandbox/kn-plugin-quickstart).
