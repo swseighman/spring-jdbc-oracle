@@ -270,7 +270,7 @@ kubectl wait ksvc spring-oradb-jvm --all --timeout=-1s --for=condition=Ready
 ```
 
 >If you deployed a web service, you can get the URL of the new Service:
-
+>
 >```
 >SERVICE_URL=$(kubectl get ksvc spring-oradb-jvm -o jsonpath='{.status.url}')
 >echo $SERVICE_URL
@@ -326,7 +326,7 @@ kubectl wait ksvc spring-oradb-native --all --timeout=-1s --for=condition=Ready
 ```
 
 >If you deployed a web service, you can get the URL of the new Service:
-
+>
 >```
 >SERVICE_URL=$(kubectl get ksvc spring-oradb-native -o jsonpath='{.status.url}')
 >echo $SERVICE_URL
