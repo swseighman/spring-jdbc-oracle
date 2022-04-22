@@ -345,7 +345,7 @@ NAME                                                  READY    STATUS    RESTART
 spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
 ```
 
-You can chek the pod log to see the output from the query.
+You can check the pod log to see output from the query.
 
 Click on **Pods** link from the left menu, then choose the **pod**:
 
