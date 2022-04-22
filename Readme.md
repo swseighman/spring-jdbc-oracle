@@ -108,11 +108,11 @@ eval $(minikube docker-env)
 
 Build the containers:
 ```
-docker build -f ./containers/Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
+docker build -f containers/Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
 ```
 
 ```
-docker build -f ./containers/Dockerfile.native -t localhost/spring-jdbc-oracle:native .
+docker build -f containers/Dockerfile.native -t localhost/spring-jdbc-oracle:native .
 ```
 
 The next two commands will show you the containers inside `minikube`, inside minikube’s VM or Container:
@@ -179,7 +179,7 @@ kubectl get services -n oracle
 
 Forward the local port to the Oracle Database:
 ```
-kubectl port-forward -n oracle oracle18xe-7676b54784-5xj26 1521:1521
+kubectl port-forward -n oracle oracle18xe-<your-service-id> 1521:1521
 ```
 
 Connect to the Oracle Database:
