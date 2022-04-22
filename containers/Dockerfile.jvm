@@ -1,11 +1,13 @@
 FROM container-registry.oracle.com/java/openjdk:17-oraclelinux8
+#FROM container-registry.oracle.com/java/jdk:11.0.12-oraclelinux8
+#For JDK8, you'll need to create an image
 
+# IMPORTANT: Change this variable to the IP of your Oracle Database service
 ENV ORACLE_HOST=192.168.49.2
 
 COPY  target/spring-jdbc-oracle-0.0.1-SNAPSHOT-exec.jar app.jar
 CMD ["java","-jar","app.jar"]
 
-# Build and run
+# Build
 # For minikube execute: eval $(minikube docker-env)
-# docker build -f ./Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
-# docker run --rm -p 8080:8080 localhost/spring-jdbc-oracle:jvm
+# docker build -f containers/Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .

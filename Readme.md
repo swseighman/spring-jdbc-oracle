@@ -33,6 +33,8 @@ sudo rpm -ihv oracle-instantclient-sqlplus-21.5.0.0.0-1.el8.x86_64.rpm
 
 ### Build the Project
 
+If you're planning to test other Java versions, make certain to change your **JAVA_HOME** before you build the project.
+
 ```
 mvn package -Pnative
 ```
@@ -98,30 +100,6 @@ minikube dashboard
 ```
 
 
-### Build Containers
-
-By using the following command, any `docker` command you run in this current terminal will run against the docker inside the `minikube` cluster:
-
-```
-eval $(minikube docker-env)
-```
-
-Build the containers:
-```
-docker build -f containers/Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
-```
-
-```
-docker build -f containers/Dockerfile.native -t localhost/spring-jdbc-oracle:native .
-```
-
-The next two commands will show you the containers inside `minikube`, inside minikube’s VM or Container:
-```
-minikube ssh
-```
-```
-docker images | grep oracle
-```
 
 ### Deploy Oracle Database XE
 
@@ -192,6 +170,32 @@ Run the SQL script to populate the sample database:
 @oracle/load_sample.sql
 ```
 
+### Build the Containers
+
+By using the following command, any `docker` command you run in this current terminal will run against the docker inside the `minikube` cluster:
+
+```
+eval $(minikube docker-env)
+```
+
+>**IMPORTANT:** Change the variable **ORACLE_HOST** in the Dockerfiles to the IP of your Oracle Database service before building the containers.
+
+Build the containers:
+```
+docker build -f containers/Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
+```
+
+```
+docker build -f containers/Dockerfile.native -t localhost/spring-jdbc-oracle:native .
+```
+
+The next two commands will show you the containers inside `minikube`, inside minikube’s VM or Container:
+```
+minikube ssh
+```
+```
+docker images | grep oracle
+```
 
 
 ### Install Knative Serving
