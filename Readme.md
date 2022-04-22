@@ -283,6 +283,21 @@ NAME                                               READY    STATUS    RESTARTS  
 spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
 ```
 
+You can chek the pod log to see the output from the query.
+
+Click on **Pods** link from the left menu, then choose the **pod**:
+
+![](images/pod-1.png)
+
+Next, click on the **Logs** icon in the upper right corner:
+
+![](images/pod-2.png)
+
+You shoud see the results from the query in the log output:
+
+![](images/pod-log.png)
+
+
 You can watch the pods and see how they scale down to zero after http traffic stops to the url
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm -w
