@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spring-oradb
+spec:
+  containers:
+    - image: localhost/spring-jdbc-oracle:jvm
+      name: spring-oradb
+      imagePullPolicy: Never 
+      resources: {}
+  restartPolicy: Never

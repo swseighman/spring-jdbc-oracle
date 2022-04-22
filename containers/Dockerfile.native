@@ -1,0 +1,11 @@
+FROM container-registry.oracle.com/os/oraclelinux:8-slim
+
+ENV ORACLE_HOST=192.168.49.2
+
+COPY target/spring-jdbc-oracle app
+ENTRYPOINT ["/app"]
+
+# Build and run
+# For minikube execute: eval $(minikube docker-env)
+# docker build -f ./Dockerfile.native -t localhost/spring-jdbc-oracle:native .
+# docker run --rm -p 8080:8080 localhost/spring-jdbc-oracle:native

@@ -108,11 +108,11 @@ eval $(minikube docker-env)
 
 Build the containers:
 ```
-docker build -f ./Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
+docker build -f ./containers/Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
 ```
 
 ```
-docker build -f ./Dockerfile.native -t localhost/spring-jdbc-oracle:native .
+docker build -f ./containers/Dockerfile.native -t localhost/spring-jdbc-oracle:native .
 ```
 
 The next two commands will show you the containers inside `minikube`, inside minikube’s VM or Container:
@@ -144,12 +144,12 @@ kubectl get namespace oracle
 
 Create a ConfigMap:
 ```
-kubectl create configmap oradb --from-env-file=oracle.properties -n oracle
+kubectl create configmap oradb --from-env-file=oracle/oracle.properties -n oracle
 ```
 
 Deploy the Oracle Database:
 ```
-kubectl apply -f oradb18xe.yml -n oracle
+kubectl apply -f oracle/oradb18xe.yml -n oracle
 ```
 
 Show the deployment:
@@ -189,7 +189,7 @@ sqlplus system/password@localhost:1521/XEPDB1
 
 Run the SQL script to populate the sample database:
 ```
-@load_sample.sql
+@oracle/load_sample.sql
 ```
 
 
@@ -258,7 +258,7 @@ Run the SQL script to populate the sample database:
 Deploy a **JAR-based** Knative Service using the yaml manifest:
 
 ```
-kubectl apply -f spring-oradb-jvm.yml
+kubectl apply -f deployments/spring-oradb-jvm.yml
 ```
 
 Wait for Knative Service to be Ready
@@ -304,7 +304,7 @@ You can follow the same process for the native image version of the service, but
 Deploy a **native image-based** Knative Service using the yaml manifest:
 
 ```
-kubectl apply -f spring-oradb-native.yml
+kubectl apply -f deployments/spring-oradb-native.yml
 ```
 
 Wait for Knative Service to be Ready
