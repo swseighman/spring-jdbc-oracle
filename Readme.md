@@ -355,7 +355,7 @@ Next, click on the **Logs** icon in the upper right corner:
 
 ![](images/pod-2.png)
 
-You shoud see the results from the query in the log output:
+You should see the results from the query in the log output:
 
 ![](images/pod-log.png)
 
@@ -388,7 +388,7 @@ After installing the plugin, you would execute:
 >```
 
 
-To shutdow the `minikube` cluster, execute:
+To shutdown the `minikube` cluster, execute:
 
 ```
 minikube stop
