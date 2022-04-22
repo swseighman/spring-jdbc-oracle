@@ -239,6 +239,7 @@ Run the SQL script to populate the sample database:
     kubectl patch configmap -n knative-serving config-domain -p "{\"data\": {\"$KNATIVE_DOMAIN\": \"\"}}"
     ```
 1. Configure Knative to use Kourier
+
     ```bash
     kubectl patch configmap/config-network \
       --namespace knative-serving \
@@ -246,6 +247,7 @@ Run the SQL script to populate the sample database:
       --patch '{"data":{"ingress.class":"kourier.ingress.networking.knative.dev"}}'
     ```
 1. Verify that Knative is Installed properly all pods should be in `Running` state and our `kourier-ingress` service configured.
+
     ```bash
     kubectl get pods -n knative-serving
     kubectl get pods -n kourier-system
@@ -262,25 +264,85 @@ kubectl apply -f deployments/spring-oradb-jvm.yml
 ```
 
 Wait for Knative Service to be Ready
+
 ```
 kubectl wait ksvc spring-oradb-jvm --all --timeout=-1s --for=condition=Ready
 ```
 
-Get the URL of the new Service
-```
-SERVICE_URL=$(kubectl get ksvc spring-oradb-jvm -o jsonpath='{.status.url}')
-echo $SERVICE_URL
-```
+>If you deployed a web service, you can get the URL of the new Service:
+
+>```
+>SERVICE_URL=$(kubectl get ksvc spring-oradb-jvm -o jsonpath='{.status.url}')
+>echo $SERVICE_URL
+>```
+
 
 Check the knative pods that scaled from zero
+
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm
 ```
 
 The output should be:
+
 ```
 NAME                                               READY    STATUS    RESTARTS   AGE
 spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
+```
+
+
+You can watch the pods and see how they scale down to zero after the query completes:
+
+```
+kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm -w
+```
+
+The output should look like this:
+
+```
+NAME                                               READY    STATUS
+spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
+spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
+```
+
+To delete the service, execute:
+
+```
+kn service delete spring-oradb-jvm
+```
+
+You can follow the same process for the native image version of the service, but use `spring-oradb-native`.
+
+Deploy a **native image-based** Knative Service using the yaml manifest:
+
+```
+kubectl apply -f deployments/spring-oradb-native.yml
+```
+
+Wait for Knative Service to be Ready
+
+```
+kubectl wait ksvc spring-oradb-native --all --timeout=-1s --for=condition=Ready
+```
+
+>If you deployed a web service, you can get the URL of the new Service:
+
+>```
+>SERVICE_URL=$(kubectl get ksvc spring-oradb-native -o jsonpath='{.status.url}')
+>echo $SERVICE_URL
+>```
+
+Check the knative pods that scaled from zero
+
+```
+kubectl get pod -l serving.knative.dev/service=spring-oradb-native
+```
+
+The output should be:
+
+```
+NAME                                                  READY    STATUS    RESTARTS   AGE
+spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
 ```
 
 You can chek the pod log to see the output from the query.
@@ -297,64 +359,23 @@ You shoud see the results from the query in the log output:
 
 ![](images/pod-log.png)
 
+Also note the startup time for the application, in this example it's **26ms**.
 
-You can watch the pods and see how they scale down to zero after http traffic stops to the url
-```
-kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm -w
-```
+You can watch the pods and see how they scale down to zero after the query completes:
 
-The output should look like this:
-```
-NAME                                               READY    STATUS
-spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
-spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
-```
-
-```
-kn service delete spring-oradb-jvm
-```
-
-You can follow the same process for the native image version of the service, but use `spring-oradb-native`.
-
-Deploy a **native image-based** Knative Service using the yaml manifest:
-
-```
-kubectl apply -f deployments/spring-oradb-native.yml
-```
-
-Wait for Knative Service to be Ready
-```
-kubectl wait ksvc spring-oradb-native --all --timeout=-1s --for=condition=Ready
-```
-
-Get the URL of the new Service
-```
-SERVICE_URL=$(kubectl get ksvc spring-oradb-native -o jsonpath='{.status.url}')
-echo $SERVICE_URL
-```
-
-Check the knative pods that scaled from zero
-```
-kubectl get pod -l serving.knative.dev/service=spring-oradb-native
-```
-
-The output should be:
-```
-NAME                                                  READY    STATUS    RESTARTS   AGE
-spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
-```
-
-You can watch the pods and see how they scale down to zero after http traffic stops to the url
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-native -w
 ```
 
 The output should look like this:
+
 ```
 NAME                                                   READY   STATUS
 spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
 spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
 ```
+
+To delete the service, execute:
 
 ```
 kn service delete spring-oradb-native
@@ -368,6 +389,7 @@ After installing the plugin, you would execute:
 
 
 To shutdow the `minikube` cluster, execute:
+
 ```
 minikube stop
 ```
