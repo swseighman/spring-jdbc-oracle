@@ -33,6 +33,8 @@ sudo rpm -ihv oracle-instantclient-sqlplus-21.5.0.0.0-1.el8.x86_64.rpm
 
 ### Build the Project
 
+If you're planning to test other Java versions, make certain to change your **JAVA_HOME** before you build the project.
+
 ```
 mvn package -Pnative
 ```
@@ -98,30 +100,6 @@ minikube dashboard
 ```
 
 
-### Build Containers
-
-By using the following command, any `docker` command you run in this current terminal will run against the docker inside the `minikube` cluster:
-
-```
-eval $(minikube docker-env)
-```
-
-Build the containers:
-```
-docker build -f ./Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
-```
-
-```
-docker build -f ./Dockerfile.native -t localhost/spring-jdbc-oracle:native .
-```
-
-The next two commands will show you the containers inside `minikube`, inside minikube’s VM or Container:
-```
-minikube ssh
-```
-```
-docker images | grep oracle
-```
 
 ### Deploy Oracle Database XE
 
@@ -144,12 +122,12 @@ kubectl get namespace oracle
 
 Create a ConfigMap:
 ```
-kubectl create configmap oradb --from-env-file=oracle.properties -n oracle
+kubectl create configmap oradb --from-env-file=oracle/oracle.properties -n oracle
 ```
 
 Deploy the Oracle Database:
 ```
-kubectl apply -f oradb18xe.yml -n oracle
+kubectl apply -f oracle/oradb18xe.yml -n oracle
 ```
 
 Show the deployment:
@@ -179,7 +157,7 @@ kubectl get services -n oracle
 
 Forward the local port to the Oracle Database:
 ```
-kubectl port-forward -n oracle oracle18xe-7676b54784-5xj26 1521:1521
+kubectl port-forward -n oracle oracle18xe-<your-service-id> 1521:1521
 ```
 
 Connect to the Oracle Database:
@@ -189,9 +167,35 @@ sqlplus system/password@localhost:1521/XEPDB1
 
 Run the SQL script to populate the sample database:
 ```
-@load_sample.sql
+@oracle/load_sample.sql
 ```
 
+### Build the Containers
+
+By using the following command, any `docker` command you run in this current terminal will run against the docker inside the `minikube` cluster:
+
+```
+eval $(minikube docker-env)
+```
+
+>**IMPORTANT:** Change the variable **ORACLE_HOST** in the Dockerfiles to the IP of your Oracle Database service before building the containers.
+
+Build the containers:
+```
+docker build -f containers/Dockerfile.jvm -t localhost/spring-jdbc-oracle:jvm .
+```
+
+```
+docker build -f containers/Dockerfile.native -t localhost/spring-jdbc-oracle:native .
+```
+
+The next two commands will show you the containers inside `minikube`, inside minikube’s VM or Container:
+```
+minikube ssh
+```
+```
+docker images | grep oracle
+```
 
 
 ### Install Knative Serving
@@ -239,14 +243,24 @@ Run the SQL script to populate the sample database:
     kubectl patch configmap -n knative-serving config-domain -p "{\"data\": {\"$KNATIVE_DOMAIN\": \"\"}}"
     ```
 1. Configure Knative to use Kourier
+<<<<<<< HEAD
     ```
+=======
+
+    ```bash
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
     kubectl patch configmap/config-network \
       --namespace knative-serving \
       --type merge \
       --patch '{"data":{"ingress.class":"kourier.ingress.networking.knative.dev"}}'
     ```
 1. Verify that Knative is Installed properly all pods should be in `Running` state and our `kourier-ingress` service configured.
+<<<<<<< HEAD
     ```
+=======
+
+    ```bash
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
     kubectl get pods -n knative-serving
     kubectl get pods -n kourier-system
     kubectl get svc  -n kourier-system
@@ -258,14 +272,20 @@ Run the SQL script to populate the sample database:
 Deploy a **JAR-based** Knative Service using the yaml manifest:
 
 ```
-kubectl apply -f spring-oradb-jvm.yml
+kubectl apply -f deployments/spring-oradb-jvm.yml
 ```
 
+<<<<<<< HEAD
 Wait for Knative Service to be Ready:
+=======
+Wait for Knative Service to be Ready
+
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
 ```
 kubectl wait ksvc spring-oradb-jvm --all --timeout=-1s --for=condition=Ready
 ```
 
+<<<<<<< HEAD
 Get the URL of the new Service:
 ```
 SERVICE_URL=$(kubectl get ksvc spring-oradb-jvm -o jsonpath='{.status.url}')
@@ -273,31 +293,62 @@ echo $SERVICE_URL
 ```
 
 Check the knative pods that scaled from zero:
+=======
+>If you deployed a web service, you can get the URL of the new Service:
+>
+>```
+>SERVICE_URL=$(kubectl get ksvc spring-oradb-jvm -o jsonpath='{.status.url}')
+>echo $SERVICE_URL
+>```
+
+
+Check the knative pods that scaled from zero
+
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm
 ```
 
 The output should be:
+
 ```
 NAME                                               READY    STATUS    RESTARTS   AGE
 spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
 ```
 
+<<<<<<< HEAD
 You can watch the pods and see how they scale down to zero after the application completes it's query.
+=======
+
+You can watch the pods and see how they scale down to zero after the query completes:
+
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm -w
 ```
 
 The output should look like this:
+
 ```
 NAME                                               READY    STATUS
 spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
 spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
 ```
 
+<<<<<<< HEAD
 You can delete the service by executing:
+=======
+To delete the service, execute:
+
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
 ```
 kn service delete spring-oradb-jvm
+```
+
+Or
+
+```
+kubectl delete -f deployments/spring-oradb-jvm.yml
 ```
 
 You can follow the same process for the native image version of the service, but use `spring-oradb-native`.
@@ -305,14 +356,20 @@ You can follow the same process for the native image version of the service, but
 Deploy a **native image-based** Knative Service using the yaml manifest:
 
 ```
-kubectl apply -f spring-oradb-native.yml
+kubectl apply -f deployments/spring-oradb-native.yml
 ```
 
+<<<<<<< HEAD
 Wait for Knative Service to be Ready:
+=======
+Wait for Knative Service to be Ready
+
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
 ```
 kubectl wait ksvc spring-oradb-native --all --timeout=-1s --for=condition=Ready
 ```
 
+<<<<<<< HEAD
 Get the URL of the new Service:
 ```
 SERVICE_URL=$(kubectl get ksvc spring-oradb-native -o jsonpath='{.status.url}')
@@ -320,31 +377,75 @@ echo $SERVICE_URL
 ```
 
 Check the knative pods that scaled from zero:
+=======
+>If you deployed a web service, you can get the URL of the new Service:
+>
+>```
+>SERVICE_URL=$(kubectl get ksvc spring-oradb-native -o jsonpath='{.status.url}')
+>echo $SERVICE_URL
+>```
+
+Check the knative pods that scaled from zero
+
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-native
 ```
 
 The output should be:
+
 ```
 NAME                                                  READY    STATUS    RESTARTS   AGE
 spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
 ```
 
+<<<<<<< HEAD
 You can watch the pods and see how they scale down to zero after the application completes it's query:
+=======
+You can check the pod log to see output from the query.
+
+Click on **Pods** link from the left menu, then choose the **pod**:
+
+![](images/pod-1.png)
+
+Next, click on the **Logs** icon in the upper right corner:
+
+![](images/pod-2.png)
+
+You should see the results from the query in the log output:
+
+![](images/pod-log.png)
+
+Also note the startup time for the application, in this example it's **26ms**.
+
+You can watch the pods and see how they scale down to zero after the query completes:
+
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-native -w
 ```
 
 The output should look like this:
+
 ```
 NAME                                                   READY   STATUS
 spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
 spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
 ```
 
+<<<<<<< HEAD
 You can delete the service by executing:
+=======
+To delete the service, execute:
+
+>>>>>>> 854508f146e7332f456b067509430e6bad95f092
 ```
 kn service delete spring-oradb-native
+```
+Or
+
+```
+kubectl delete -f deployments/spring-oradb-native.yml
 ```
 
 >FYI, there is also a `kn` plugin (still in Beta) which will perform an automated install of the Knative environment.  See more info [here](https://github.com/knative-sandbox/kn-plugin-quickstart).
@@ -354,7 +455,8 @@ After installing the plugin, you would execute:
 >```
 
 
-To shutdow the `minikube` cluster, execute:
+To shutdown the `minikube` cluster, execute:
+
 ```
 minikube stop
 ```
