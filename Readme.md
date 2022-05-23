@@ -6,7 +6,7 @@ There are two versions of the service, one is a standard JAR-based application w
 
 The goal is to compare startup time for each service.
 
-You'll need to have GraalVM (22.0.0.2 preferred) and the native image module installed.
+You'll need to have GraalVM (22.0.0.2 preferred) and the native image module installed.  You'll also need `docker` or `podman` installed.
 
 **JDK 17** is highly recommended.
 
@@ -48,7 +48,7 @@ https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
 Finally, install `kn`, see instructions here: https://knative.dev/docs/install/client/install-kn/#install-the-kn-cli
 
-You can check to determine if you're at the latest version or whether an upgrade might be in order:
+You can check to determine if your `minikube` is the latest version or whether an upgrade might be in order:
 ```
 minikube update-check
 ```
@@ -197,11 +197,11 @@ Run the SQL script to populate the sample database:
 ### Install Knative Serving
 
 1. Select the version of Knative Serving to install
-    ```bash
+    ```
     export KNATIVE_VERSION="1.3.0"
     ```
 1. Install Knative Serving in namespace `knative-serving`
-    ```bash
+    ```
     kubectl apply -f https://github.com/knative/serving/releases/download/knative-v${KNATIVE_VERSION}/serving-crds.yaml
     kubectl wait --for=condition=Established --all crd
 
@@ -210,43 +210,43 @@ Run the SQL script to populate the sample database:
     kubectl wait pod --timeout=-1s --for=condition=Ready -l '!job-name' -n knative-serving > /dev/null
     ```
 1. Select the version of Knative Net Kourier to install
-    ```bash
+    ```
     export KNATIVE_NET_KOURIER_VERSION="1.3.0"
     ```
 
 1. Install Knative Layer kourier in namespace `kourier-system`
-    ```bash
+    ```
     kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v${KNATIVE_NET_KOURIER_VERSION}/kourier.yaml
     kubectl wait pod --timeout=-1s --for=condition=Ready -l '!job-name' -n kourier-system
     kubectl wait pod --timeout=-1s --for=condition=Ready -l '!job-name' -n knative-serving
     ```
 1. Set the environment variable `EXTERNAL_IP` to External IP Address of the Worker Node, you might need to run this command multiple times until service is ready.
-    ```bash
+    ```
     EXTERNAL_IP=$(kubectl -n kourier-system get service kourier -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     echo EXTERNAL_IP=$EXTERNAL_IP
     ```
 2. Set the environment variable `KNATIVE_DOMAIN` as the DNS domain using `sslip.io`
-    ```bash
+    ```
     KNATIVE_DOMAIN="$EXTERNAL_IP.sslip.io"
     echo KNATIVE_DOMAIN=$KNATIVE_DOMAIN
     ```
     Double-check DNS is resolving
-    ```bash
+    ```
     dig $KNATIVE_DOMAIN
     ```
 1. Configure DNS for Knative Serving
-    ```bash
+    ```
     kubectl patch configmap -n knative-serving config-domain -p "{\"data\": {\"$KNATIVE_DOMAIN\": \"\"}}"
     ```
 1. Configure Knative to use Kourier
-    ```bash
+    ```
     kubectl patch configmap/config-network \
       --namespace knative-serving \
       --type merge \
       --patch '{"data":{"ingress.class":"kourier.ingress.networking.knative.dev"}}'
     ```
 1. Verify that Knative is Installed properly all pods should be in `Running` state and our `kourier-ingress` service configured.
-    ```bash
+    ```
     kubectl get pods -n knative-serving
     kubectl get pods -n kourier-system
     kubectl get svc  -n kourier-system
@@ -261,18 +261,18 @@ Deploy a **JAR-based** Knative Service using the yaml manifest:
 kubectl apply -f spring-oradb-jvm.yml
 ```
 
-Wait for Knative Service to be Ready
+Wait for Knative Service to be Ready:
 ```
 kubectl wait ksvc spring-oradb-jvm --all --timeout=-1s --for=condition=Ready
 ```
 
-Get the URL of the new Service
+Get the URL of the new Service:
 ```
 SERVICE_URL=$(kubectl get ksvc spring-oradb-jvm -o jsonpath='{.status.url}')
 echo $SERVICE_URL
 ```
 
-Check the knative pods that scaled from zero
+Check the knative pods that scaled from zero:
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm
 ```
@@ -283,7 +283,7 @@ NAME                                               READY    STATUS    RESTARTS  
 spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
 ```
 
-You can watch the pods and see how they scale down to zero after http traffic stops to the url
+You can watch the pods and see how they scale down to zero after the application completes it's query.
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-jvm -w
 ```
@@ -295,6 +295,7 @@ spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
 spring-oradb-jvm-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
 ```
 
+You can delete the service by executing:
 ```
 kn service delete spring-oradb-jvm
 ```
@@ -307,18 +308,18 @@ Deploy a **native image-based** Knative Service using the yaml manifest:
 kubectl apply -f spring-oradb-native.yml
 ```
 
-Wait for Knative Service to be Ready
+Wait for Knative Service to be Ready:
 ```
 kubectl wait ksvc spring-oradb-native --all --timeout=-1s --for=condition=Ready
 ```
 
-Get the URL of the new Service
+Get the URL of the new Service:
 ```
 SERVICE_URL=$(kubectl get ksvc spring-oradb-native -o jsonpath='{.status.url}')
 echo $SERVICE_URL
 ```
 
-Check the knative pods that scaled from zero
+Check the knative pods that scaled from zero:
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-native
 ```
@@ -329,7 +330,7 @@ NAME                                                  READY    STATUS    RESTART
 spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running   0          7s
 ```
 
-You can watch the pods and see how they scale down to zero after http traffic stops to the url
+You can watch the pods and see how they scale down to zero after the application completes it's query:
 ```
 kubectl get pod -l serving.knative.dev/service=spring-oradb-native -w
 ```
@@ -341,6 +342,7 @@ spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   1/1     Running
 spring-oradb-native-r4vz7-deployment-c5d4b88f7-ks95l   0/1     Terminating
 ```
 
+You can delete the service by executing:
 ```
 kn service delete spring-oradb-native
 ```
